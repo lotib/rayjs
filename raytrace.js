@@ -4,23 +4,60 @@ var SCREEN_Y = 0;
 var SCREEN_Z = 100;
 
 // eye of the scene
-var EYE_POS = [100, 
+var EYE_POS = [100,
 	       100, 
 	       0];
 
 
-// world 
-var s1 = {
-    center: [0,0,0],
-    radius: 50,
-    color: [255,0,0]
-};
+// declaring our world
+var OBJECT = {
+    SPHERE: 1,
+    PLAN: 2,
+}
 
-var s2 = {
-    center: [100,100,300],
-    radius: 50,
-    color: [0,0,255]
-};
+// colors  r,g,b,a
+var BLACK= [0,0,0,255];
+var WHITE= [255,255,255,255];
+var RED  = [255,0,0,255];
+var BLUE = [0,0,255,255];
+var GREEN = [0,255,0,255];
+
+
+/**
+ * @brief constructs a 3d world with objects ans coordinates 
+ */
+function createWorld(){
+    
+    var world = [];
+    
+    world.push({
+	type: OBJECT.SPHERE, 
+	center: [150,150,200],
+	radius: 10,
+	color: BLUE
+    });
+
+    world.push({
+	type: OBJECT.SPHERE, 
+	center: [50,50,300],
+	radius: 40,
+	color: RED
+    });
+
+    world.push({
+	type: OBJECT.SPHERE, 
+	center: [100,100,300],
+	radius: 50,
+	color: GREEN
+    });
+    
+    world.forEach(function(obj) {
+	debug(obj);
+    });
+
+    return world;
+}
+
 
 function debug(obj){
     console.log(obj);
@@ -29,6 +66,9 @@ function debug(obj){
 function getContext(){
     var canvas = document.getElementById('raycanvas');
     var ctx = canvas.getContext('2d');
+
+    debug(canvas);
+    debug(ctx);
 
     return {
 	context : ctx,
@@ -63,14 +103,12 @@ function fillRect(ctx){
 }
 
 /**
- * @brief no limitation in sphere center position 
+ * @brief   checks the intersection(s) of the ray with a sphere 
+ *          on cherche les coefficients de l'equation ax²+bx+c=0
+ * @return  the color of the targeted object, black otherwise
  */
-function intersectionSphere2(point, vector, sphere)
+function intersectionSphere(point, vector, sphere)
 {
-    ret = false;
-    
-    // on cherche ax²+bx+c=0
-
     var a = Math.pow(vector[0], 2) + 
 	Math.pow(vector[1], 2) + 
 	Math.pow(vector[2], 2);
@@ -98,59 +136,74 @@ function intersectionSphere2(point, vector, sphere)
     // discriminant
     var d = Math.pow(b,2) - 4 * a * c;
 
-    // debug(d);
-
     // if d < 0   no solution
     if (d == 0) // une solution rayon tangeant
     {
 	// var x = -1 * b / 2a;
-	ret = true;
+	return {
+	    color: sphere.color,
+	    z:1
+	};
     }
     else if (d > 0)  // deux solutions qui sont les deux intersections
     {
 	//var x1 = (-1 * b - Math.sqrt(d)) / (2 * a);
 	//var x2 = (-1 * b + Math.sqrt(d)) / (2 * a);
-	ret = true
+	return {
+	    color: sphere.color,
+	    z:1
+	};
     }
 
-    return ret;
+    return {
+	color: BLACK,
+	z: -1
+    };
 }
 
+/**
+ * @brief fire a ray 
+ */
+function fireRay(world, context, img, x, y){
+   
+    var color = BLACK;
+    
+    // vecteur
+    vx = x - EYE_POS[0] + SCREEN_X;
+    vy = y - EYE_POS[1] + SCREEN_Y;
+    vz = SCREEN_Z - EYE_POS[2];
+ 
+    var vector = [vx, vy, vz];
+    
+    world.some(function(obj) {
+	
+	if (obj.type == OBJECT.SPHERE){
+	    point = intersectionSphere(EYE_POS, vector, obj);
+	}
+	
+	// break if we touch a sphere otherwise continue
+	return (point.z > 0);
+    });
+    
+    drawPixel (img, context.canvas.width, 
+	       x, 
+	       y, 
+	       point.color[0], point.color[1], point.color[2], point.color[3]);
+}
 
+/**
+ * @brief iterate each screen point to fire a ray from the eye
+ */
 function trace(){
     context = getContext();
     img = createImage(context.context, context.canvas.width, context.canvas.height);
+    world = createWorld();
 
     for (var x = 0; x < context.canvas.width; x++)
     {
 	for (var y = 0; y < context.canvas.height; y++)
 	{
-	    r = 0;
-	    g = 0;
-	    b = 0;
-	    a = 255;
-	    
-	    // console.log(x , y);
-
-	    // vecteur
-	    vx = EYE_POS[0] - x + SCREEN_X;
-	    vy = EYE_POS[1] - y + SCREEN_Y;
-	    vz = EYE_POS[2] - SCREEN_Z;
-	    // vecteur opposé
-	    vvx = x - EYE_POS[0] + SCREEN_X;
-	    vvy = y - EYE_POS[1] + SCREEN_Y;
-	    vvz = SCREEN_Z - EYE_POS[2];
-
-	    var point = [x + SCREEN_X, y + SCREEN_Y, SCREEN_Z];
-	    var vector = [vvx, vvy, vvz];
-
-	    //debug(EYE_POS + " -> " + point + " => " + vector);
-
-	    if  (intersectionSphere2(EYE_POS, vector, s2)){
-		r = 255;
-	    }
-
-	    drawPixel (img, context.canvas.width, x, y, r, g, b, a)
+	    fireRay(world, context, img, x, y);
 	}
     }
     updateCanvas(context.context, img);
