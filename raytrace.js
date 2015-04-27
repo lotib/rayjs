@@ -1,29 +1,26 @@
+// screen bottom left position
+var SCREEN_X = 0;
+var SCREEN_Y = 0;
+var SCREEN_Z = 100;
+
+// eye of the scene
+var EYE_POS = [100, 
+	       100, 
+	       0];
 
 
-var SCREEN_Z = -100;
-var SCREEN_X = -100;
-var SCREEN_Y = -100;
+// world 
+var s1 = {
+    center: [0,0,0],
+    radius: 50,
+    color: [255,0,0]
+};
 
-// x y z
-var SCREEN_TOP_LEFT = [100, 
-		       -100, 
-		       SCREEN_Z];
-
-var SCREEN_BOTTOM_RIGHT = [-100, 
-			   100, 
-			   SCREEN_Z];
-
-var EYE_POS = [0, 
-	       0, 
-	       -200];
-
-
-// env
-
-// sphere  x,y,z,R
-var s1 = [0,0,0,50];
-var s2 = [0,0,0,20];
-
+var s2 = {
+    center: [100,100,300],
+    radius: 50,
+    color: [0,0,255]
+};
 
 function debug(obj){
     console.log(obj);
@@ -65,26 +62,36 @@ function fillRect(ctx){
     ctx.fillRect(30, 30, 50, 50);
 }
 
-// la sphere ne peut etre qu'en position 0,0,0
-function intersectionSphere(point, vector, sphere)
+/**
+ * @brief no limitation in sphere center position 
+ */
+function intersectionSphere2(point, vector, sphere)
 {
     ret = false;
     
+    // on cherche ax²+bx+c=0
+
     var a = Math.pow(vector[0], 2) + 
 	Math.pow(vector[1], 2) + 
 	Math.pow(vector[2], 2);
 
-    var b = 2 * (vector[0] * point[0] +
-		      vector[1] * point[1] +
-		      vector[2] * point[2]);
+    var b = 2 * (vector[0] * point[0] 
+		 - vector[0] * sphere.center[0]
+		 + vector[1] * point[1]
+		 - vector[1] * sphere.center[1]
+		 + vector[2] * point[2]
+		 - vector[2] * sphere.center[2]);
 
-    // b += 2 * ()
-
-    var c = Math.pow(point[0], 2) +
-	Math.pow(point[1], 2) +
-	Math.pow(point[2], 2) -
-	Math.pow(sphere[3], 2);
-
+    var c = Math.pow(point[0], 2)
+	- 2 * sphere.center[0] * point[0]
+	+ Math.pow(sphere.center[0], 2)
+	+ Math.pow(point[1], 2) 
+	- 2 * sphere.center[1] * point[1]
+	+ Math.pow(sphere.center[1], 2)
+	+ Math.pow(point[2], 2) 
+	- 2 * sphere.center[2] * point[2]
+	+ Math.pow(sphere.center[2], 2)
+	- Math.pow(sphere.radius, 2);
     
     // debug(a + " x2 + " + b + " x + " + c);
 
@@ -94,19 +101,15 @@ function intersectionSphere(point, vector, sphere)
     // debug(d);
 
     // if d < 0   no solution
-    if (d == 0) // une solution
+    if (d == 0) // une solution rayon tangeant
     {
 	// var x = -1 * b / 2a;
 	ret = true;
-	
-	debug("coucou");
     }
-    else if (d > 0)  // deux solutions
+    else if (d > 0)  // deux solutions qui sont les deux intersections
     {
 	//var x1 = (-1 * b - Math.sqrt(d)) / (2 * a);
 	//var x2 = (-1 * b + Math.sqrt(d)) / (2 * a);
-	
-	debug("coucou");
 	ret = true
     }
 
@@ -133,25 +136,22 @@ function trace(){
 	    vx = EYE_POS[0] - x + SCREEN_X;
 	    vy = EYE_POS[1] - y + SCREEN_Y;
 	    vz = EYE_POS[2] - SCREEN_Z;
-
+	    // vecteur opposé
 	    vvx = x - EYE_POS[0] + SCREEN_X;
 	    vvy = y - EYE_POS[1] + SCREEN_Y;
 	    vvz = SCREEN_Z - EYE_POS[2];
-
 
 	    var point = [x + SCREEN_X, y + SCREEN_Y, SCREEN_Z];
 	    var vector = [vvx, vvy, vvz];
 
 	    //debug(EYE_POS + " -> " + point + " => " + vector);
 
-	    if  (intersectionSphere(EYE_POS, vector, s1)){
+	    if  (intersectionSphere2(EYE_POS, vector, s2)){
 		r = 255;
 	    }
 
 	    drawPixel (img, context.canvas.width, x, y, r, g, b, a)
-	    
 	}
     }
     updateCanvas(context.context, img);
-
 }
