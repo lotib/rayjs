@@ -8,8 +8,7 @@ var EYE_POS = [100,
 	       100, 
 	       0];
 
-
-// declaring our world
+// declaring our world diversity
 var OBJECT = {
     SPHERE: 1,
     PLAN: 2,
@@ -49,6 +48,12 @@ function createWorld(){
 	center: [100,100,300],
 	radius: 50,
 	color: GREEN
+    });
+
+    world.push({
+	type: OBJECT.PLAN,
+	equation: [1,1,1,0],
+	color: WHITE
     });
     
     world.forEach(function(obj) {
@@ -102,13 +107,60 @@ function fillRect(ctx){
     ctx.fillRect(30, 30, 50, 50);
 }
 
+
+
+function testIntersectionPlan()
+{
+
+    point = intersectionPlan([2,1,2],
+			     [3,-1,2],
+			     {
+				 type: OBJECT.PLAN,
+				 equation: [1,1,2,-5],
+				 color: WHITE
+			     });
+
+    debug(point); // t == -1/3,  [1,4/3,4/3]
+}
+
+
+function intersectionPlan(point, vector, plan){
+    var t = 	-(plan.equation[0] * point[0] +
+		  plan.equation[1] * point[1] +
+		  plan.equation[2] * point[2] +
+		  plan.equation[3]) /
+	(plan.equation[0] * vector[0] + 
+	 plan.equation[1] * vector[1] +
+	 plan.equation[2] * vector[2]);
+    
+    if (plan.equation[0] * (point[0] + vector[0] * t) +
+	plan.equation[1] * (point[1] + vector[1] * t) +
+	plan.equation[2] * (point[2] + vector[2] * t) +
+	plan.equation[3] == 0)
+    {
+	var x = point[0] + vector[0] * t;
+	var y = point[1] + vector[1] * t;
+	var z = point[2] + vector[2] * t;
+
+	return {
+	    point: [x,y,z],
+	    t: t,
+	    color: plan.color,
+	    z:1
+	}; 
+    }
+    return {
+	color: BLACK,
+	z: -1
+    };
+}
+
 /**
  * @brief   checks the intersection(s) of the ray with a sphere 
  *          on cherche les coefficients de l'equation ax²+bx+c=0
  * @return  the color of the targeted object, black otherwise
  */
-function intersectionSphere(point, vector, sphere)
-{
+function intersectionSphere(point, vector, sphere){
     var a = Math.pow(vector[0], 2) + 
 	Math.pow(vector[1], 2) + 
 	Math.pow(vector[2], 2);
@@ -177,8 +229,12 @@ function fireRay(world, context, img, x, y){
     
     world.some(function(obj) {
 	
+	
 	if (obj.type == OBJECT.SPHERE){
 	    point = intersectionSphere(EYE_POS, vector, obj);
+	}
+	else if (obj.type == OBJECT.PLAN){
+	    point = intersectionPlan(EYE_POS, vector, obj);
 	}
 	
 	// break if we touch a sphere otherwise continue
@@ -192,7 +248,7 @@ function fireRay(world, context, img, x, y){
 }
 
 /**
- * @brief iterate each screen point to fire a ray from the eye
+ * @brief iterate each screen point to fire a ray from the eye coordinates
  */
 function trace(){
     context = getContext();
@@ -207,4 +263,9 @@ function trace(){
 	}
     }
     updateCanvas(context.context, img);
+}
+
+function test()
+{
+    testIntersectionPlan();
 }
