@@ -1,18 +1,38 @@
 
 <!DOCTYPE html>
 <html>
-<body>
-<script src="raytrace.js"></script>
+  <head>
+    <style>
+      .dump_world_object 
+      {
+      line-height:30px;
+      background-color:#eeeeee;
+//      height:300px;
+//      width:100px;
+      float:left;
+      padding:5px;
+      border-style: solid;
+      border-width: 1px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      margin-right: 2px;
+      margin-left: 2px;
+      }
+    </style>
+  </head>
+  <body onload="init()">
+    <script src="world.js"></script>
+    <script src="raytrace.js"></script>
 
-<canvas id="raycanvas" width="200" height="200">
-  no support for HTML5 Canvas.
-</canvas>
+    <div id='view'>
+      <canvas id="raycanvas" width="200" height="200">
+	no support for HTML5 Canvas.
+      </canvas>
+      <button onclick="trace()">Trace</button>
+      <button onclick="test()">Test</button>
+    </div>
+    <div id='objects'>
+    </div>
 
-
-
-<button onclick="trace()">Trace</button>
-<button onclick="test()">Test</button>
-
-
-</body>
+  </body>
 </html>

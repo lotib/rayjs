@@ -1,68 +1,3 @@
-// screen bottom left position
-var SCREEN_X = 0;
-var SCREEN_Y = 0;
-var SCREEN_Z = 100;
-
-// eye of the scene
-var EYE_POS = [100,
-	       100, 
-	       0];
-
-// declaring our world diversity
-var OBJECT = {
-    SPHERE: 1,
-    PLAN: 2,
-}
-
-// colors  r,g,b,a
-var BLACK= [0,0,0,255];
-var WHITE= [255,255,255,255];
-var RED  = [255,0,0,255];
-var BLUE = [0,0,255,255];
-var GREEN = [0,255,0,255];
-
-
-/**
- * @brief constructs a 3d world with objects ans coordinates 
- */
-function createWorld(){
-    
-    var world = [];
-    
-    world.push({
-	type: OBJECT.SPHERE, 
-	center: [150,150,200],
-	radius: 10,
-	color: BLUE
-    });
-
-    world.push({
-	type: OBJECT.SPHERE, 
-	center: [50,50,300],
-	radius: 40,
-	color: RED
-    });
-
-    world.push({
-	type: OBJECT.SPHERE, 
-	center: [100,100,300],
-	radius: 50,
-	color: GREEN
-    });
-
-    world.push({
-	type: OBJECT.PLAN,
-	equation: [1,1,1,0],
-	color: WHITE
-    });
-    
-    world.forEach(function(obj) {
-	debug(obj);
-    });
-
-    return world;
-}
-
 
 function debug(obj){
     console.log(obj);
@@ -107,8 +42,6 @@ function fillRect(ctx){
     ctx.fillRect(30, 30, 50, 50);
 }
 
-
-
 function testIntersectionPlan()
 {
 
@@ -122,7 +55,6 @@ function testIntersectionPlan()
 
     debug(point); // t == -1/3,  [1,4/3,4/3]
 }
-
 
 function intersectionPlan(point, vector, plan){
     var t = 	-(plan.equation[0] * point[0] +
@@ -142,12 +74,15 @@ function intersectionPlan(point, vector, plan){
 	var y = point[1] + vector[1] * t;
 	var z = point[2] + vector[2] * t;
 
-	return {
-	    point: [x,y,z],
-	    t: t,
-	    color: plan.color,
-	    z:1
-	}; 
+
+	if (true/*z > SCREEN_Z*/){
+	    return {
+		point: [x,y,z],
+		t: t,
+		color: plan.color,
+		z:1
+	    };
+	} 
     }
     return {
 	color: BLACK,
@@ -158,6 +93,7 @@ function intersectionPlan(point, vector, plan){
 /**
  * @brief   checks the intersection(s) of the ray with a sphere 
  *          on cherche les coefficients de l'equation ax²+bx+c=0
+ *	    the algebric way
  * @return  the color of the targeted object, black otherwise
  */
 function intersectionSphere(point, vector, sphere){
@@ -213,6 +149,41 @@ function intersectionSphere(point, vector, sphere){
     };
 }
 
+function intersectionCylinder(point, vector, cylinder){
+    var a = Math.pow(vector[0], 2) + 
+	Math.pow(vector[1], 2);
+
+    
+    // debug(a + " x2 + " + b + " x + " + c);
+
+    // discriminant
+    var d = Math.pow(b,2) - 4 * a * c;
+
+    // if d < 0   no solution
+    if (d == 0) // une solution rayon tangeant
+    {
+	// var x = -1 * b / 2a;
+	return {
+	    color: cylinder.color,
+	    z:1
+	};
+    }
+    else if (d > 0)  // deux solutions qui sont les deux intersections
+    {
+	//var x1 = (-1 * b - Math.sqrt(d)) / (2 * a);
+	//var x2 = (-1 * b + Math.sqrt(d)) / (2 * a);
+	return {
+	    color: cylinder.color,
+	    z:1
+	};
+    }
+
+    return {
+	color: BLACK,
+	z: -1
+    };
+}
+
 /**
  * @brief fire a ray 
  */
@@ -228,7 +199,6 @@ function fireRay(world, context, img, x, y){
     var vector = [vx, vy, vz];
     
     world.some(function(obj) {
-	
 	
 	if (obj.type == OBJECT.SPHERE){
 	    point = intersectionSphere(EYE_POS, vector, obj);
@@ -253,19 +223,26 @@ function fireRay(world, context, img, x, y){
 function trace(){
     context = getContext();
     img = createImage(context.context, context.canvas.width, context.canvas.height);
-    world = createWorld();
-
+    
     for (var x = 0; x < context.canvas.width; x++)
     {
 	for (var y = 0; y < context.canvas.height; y++)
 	{
-	    fireRay(world, context, img, x, y);
+	    fireRay(_world, context, img, x, y);
 	}
     }
     updateCanvas(context.context, img);
+}
+
+var _world = null;
+function init()
+{
+    _world = createWorld();
+    trace();
 }
 
 function test()
 {
     testIntersectionPlan();
 }
+
