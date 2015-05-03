@@ -1,11 +1,11 @@
 // screen bottom left position
-var SCREEN_X = 0;
-var SCREEN_Y = 0;
-var SCREEN_Z = 100;
+var SCREEN_X = -200;
+var SCREEN_Y = -200;
+var SCREEN_Z = 50;
 
 // eye of the scene
-var EYE_POS = [100,
-	       100, 
+var EYE_POS = [0,
+	       0, 
 	       0];
 
 /* declaring our world diversity */
@@ -52,8 +52,8 @@ function createWorld(){
     world.push({
 	id: getNextId(),
 	type: OBJECT.SPHERE, 
-	center: [150,150,200],
-	radius: 10,
+	center: [0,50,100],
+	radius: 20,
 	color: BLUE
     });
 
@@ -68,7 +68,7 @@ function createWorld(){
     world.push({
 	id: getNextId(),
 	type: OBJECT.SPHERE, 
-	center: [100,100,300],
+	center: [200,-50,300],
 	radius: 50,
 	color: GREEN
     });
@@ -103,10 +103,9 @@ function on_save_object(obj, div){
 	    div.childNodes[child].tagName.toLowerCase() === "input"){
 	    
 	    /* if property is an array */
-	    if (Object.prototype.toString.call( obj[div.childNodes[child].id] ) 
-		=== '[object Array]'){
+	    if (obj[div.childNodes[child].id] instanceof Array){
 		
-		obj[div.childNodes[child].id] = eval('[' + div.childNodes[child].value + ']');
+		obj[div.childNodes[child].id] = div.childNodes[child].value.split(/,/);
 	    }
 	    else // it s an integer
 	    {
@@ -116,7 +115,7 @@ function on_save_object(obj, div){
     }
 
     // print modified object
-    debug(obj);
+    // debug(obj);
     trace();
 
 }

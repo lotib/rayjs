@@ -7,9 +7,6 @@ function getContext(){
     var canvas = document.getElementById('raycanvas');
     var ctx = canvas.getContext('2d');
 
-    debug(canvas);
-    debug(ctx);
-
     return {
 	context : ctx,
 	canvas  : canvas
@@ -195,6 +192,7 @@ function fireRay(world, context, img, x, y){
     vx = x - EYE_POS[0] + SCREEN_X;
     vy = y - EYE_POS[1] + SCREEN_Y;
     vz = SCREEN_Z - EYE_POS[2];
+//   vz = SCREEN_Z - EYE_POS[2];
  
     var vector = [vx, vy, vz];
     
@@ -203,9 +201,9 @@ function fireRay(world, context, img, x, y){
 	if (obj.type == OBJECT.SPHERE){
 	    point = intersectionSphere(EYE_POS, vector, obj);
 	}
-	else if (obj.type == OBJECT.PLAN){
+/*	else if (obj.type == OBJECT.PLAN){
 	    point = intersectionPlan(EYE_POS, vector, obj);
-	}
+	}*/
 	
 	// break if we touch a sphere otherwise continue
 	return (point.z > 0);
@@ -224,9 +222,9 @@ function trace(){
     context = getContext();
     img = createImage(context.context, context.canvas.width, context.canvas.height);
     
-    for (var x = 0; x < context.canvas.width; x++)
+    for (var x = SCREEN_X; x < (context.canvas.width - SCREEN_X); x++)
     {
-	for (var y = 0; y < context.canvas.height; y++)
+	for (var y = SCREEN_Y; y < (context.canvas.height - SCREEN_Y); y++)
 	{
 	    fireRay(_world, context, img, x, y);
 	}
